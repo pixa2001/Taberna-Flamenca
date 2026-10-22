@@ -55,3 +55,36 @@ dialog p { line-height: 1.5; overflow-wrap: anywhere; }
 }
 
 .preview-note { color: #d3cbc5; font-size: 14px; line-height: 1.4; margin: 6px 0; }
+
+/* Soft viewport edges indicate content above/below without blocking touch. */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  pointer-events: none;
+  height: 64px;
+  background: rgba(9, 8, 7, .12);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: opacity .15s ease;
+}
+body::before {
+  top: 0;
+  height: calc(64px + env(safe-area-inset-top, 0px));
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+  mask-image: linear-gradient(to bottom, black, transparent);
+  opacity: var(--top-edge-opacity, 0);
+}
+body::after {
+  bottom: 0;
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+  -webkit-mask-image: linear-gradient(to top, black, transparent);
+  mask-image: linear-gradient(to top, black, transparent);
+  opacity: var(--bottom-edge-opacity, 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  body::before, body::after { transition: none; }
+}
