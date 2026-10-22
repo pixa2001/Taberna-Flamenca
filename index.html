@@ -1008,7 +1008,7 @@ and
   <form id="report-form" class="report-panel" novalidate>
     <fieldset class="photos-field">
       <legend id="photo-count">Fotos 0 / 5</legend>
-      <p id="photo-help">Opcional. Añade hasta 5 fotos.</p>
+      <p id="photo-help">Opcional. Añade hasta 5 fotos. Tendrás que adjuntarlas manualmente en el correo; no se añaden automáticamente.</p>
       <div class="photo-actions">
         <label class="touch-button photo-picker" for="camera-input">Tomar foto
           <input id="camera-input" type="file" accept="image/*" capture="environment" aria-describedby="photo-help">
@@ -1042,15 +1042,11 @@ and
 </dialog>
 
 <dialog id="delivery-dialog" aria-labelledby="delivery-title">
-  <h2 id="delivery-title">Preparar el envío</h2>
-  <div id="delivery-instructions"></div>
-  <p>Destinatario: <strong>info@taberna-flamenca.com</strong></p>
+  <h2 id="delivery-title">Fotos para adjuntar</h2>
+  <p>Se ha solicitado abrir tu aplicación de correo. Las fotos no se adjuntan automáticamente. Guarda las fotos y añádelas manualmente al mensaje antes de enviarlo.</p>
   <ul id="download-list"></ul>
-  <p id="delivery-error" role="alert"></p>
-  <div class="dialog-actions">
-    <button class="touch-button secondary" id="delivery-back" autofocus>Volver</button>
-    <button class="touch-button primary" id="delivery-continue">Continuar</button>
-  </div>
+  <p>Cuando ya no necesites estas fotos, pulsa Finalizar. Se descartarán de esta aplicación.</p>
+  <button class="touch-button primary" id="finish-photos" autofocus>Finalizar</button>
 </dialog>
 </body>
 </html>

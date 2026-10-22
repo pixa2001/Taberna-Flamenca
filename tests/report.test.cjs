@@ -30,17 +30,10 @@ for (const engine of ['chromium', ...(process.env.RUN_WEBKIT === '1' ? ['webkit'
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(() => {
-      window.shared = [];
-      window.shareMode = 'success';
       window.revoked = 0;
       const revoke = URL.revokeObjectURL.bind(URL);
       URL.revokeObjectURL = url => { window.revoked++; revoke(url); };
-      Object.defineProperty(navigator, 'canShare', { configurable: true, value: data => data.files.length > 0 });
-      Object.defineProperty(navigator, 'share', { configurable: true, value: async data => {
-        if (window.shareMode === 'abort') throw new DOMException('Cancelled', 'AbortError');
-        if (window.shareMode === 'error') throw new DOMException('Denied', 'NotAllowedError');
-        window.shared.push({ title: data.title, text: data.text, files: data.files.map(f => ({ name: f.name, size: f.size, isFile: f instanceof File })) });
-      } });
+      Object.defineProperty(navigator, 'share', { value: () => { throw Error('Share must never be called'); } });
     });
     await page.goto(baseURL);
     await page.clock.install({ time: new Date('2026-10-22T20:17:35Z') });
@@ -65,7 +58,7 @@ for (const engine of ['chromium', ...(process.env.RUN_WEBKIT === '1' ? ['webkit'
       await page.locator('#description').fill('El frigorífico no enfría. & + ? # ñ');
       const report = await page.evaluate(() => prepareReport(new Date('2026-10-22T20:17:35Z')));
       assert.equal(report.reportId, 'TF-20261022-221735');
-      assert.equal(report.subject, `TF-20261022-221735 – ${german}`);
+      assert.equal(report.subject, 'TF-20261022-221735');
       assert.ok(report.body.includes(`Kategorie:\n${german}`));
       assert.ok(report.body.includes('Datum:\n22.10.2026\n\nUhrzeit:\n22:17'));
       assert.ok(report.body.includes('El frigorífico no enfría. & + ? # ñ'));
@@ -101,50 +94,26 @@ for (const engine of ['chromium', ...(process.env.RUN_WEBKIT === '1' ? ['webkit'
     assert.equal(await page.locator('#camera-input').getAttribute('capture'), 'environment');
     let report = await page.evaluate(() => prepareReport());
     assert.match(report.body, /Keine Beschreibung angegeben\./);
-    assert.match(report.body, /5 Fotos beigefügt\./);
+    assert.match(report.body, /5 Fotos zum manuellen Anhängen\./);
 
-    // Native OS calls are mocked; test cancellation, failures, original Files and payload.
-    await page.evaluate(() => { window.shareMode = 'abort'; });
-    await page.locator('#send-report').click();
-    await page.locator('#delivery-continue').click();
-    await page.waitForFunction(() => !document.getElementById('delivery-dialog').open);
-    assert.equal(await page.locator('#photo-list li').count(), 5);
-    assert.match(await page.locator('#form-error').innerText(), /cancelado/);
-    await page.evaluate(() => { window.shareMode = 'error'; });
-    await page.locator('#send-report').click();
-    await page.locator('#delivery-continue').click();
-    await page.waitForFunction(() => document.getElementById('delivery-continue').textContent === 'Abrir correo');
-    assert.equal(await page.locator('#download-list a').count(), 5);
-    assert.match(await page.locator('#delivery-error').innerText(), /no incluirá fotos/);
-    await page.locator('#delivery-back').click();
-    await page.evaluate(() => { window.shareMode = 'success'; });
+    // Send launches mail directly, with only a post-launch attachment notice.
     await page.locator('#description').fill('Texto sin traducir');
     await page.locator('#send-report').click();
-    await page.locator('#delivery-continue').click();
+    assert.equal(await visible('#delivery-dialog'), true);
+    assert.equal(await page.locator('#download-list a').count(), 5);
+    assert.equal(await page.locator('#photo-list li').count(), 5);
+    assert.match(await page.locator('#delivery-dialog').innerText(), /no se adjuntan automáticamente/);
+    await page.locator('#finish-photos').click();
     await page.waitForFunction(() => !document.getElementById('home').hidden);
-    const shared = await page.evaluate(() => window.shared);
-    assert.equal(shared.length, 1);
-    assert.equal(shared[0].files.length, 5);
-    assert.ok(shared[0].files.every(f => f.isFile && f.size > 0));
-    assert.match(shared[0].text, /Empfänger: info@taberna-flamenca.com/);
-    assert.match(shared[0].text, /Texto sin traducir/);
-    const id = shared[0].title.split(' – ')[0];
-    assert.ok(shared[0].text.includes(`Meldungsnummer:\n${id}`));
     assert.equal(await page.locator('#photo-list li').count(), 0);
     assert.equal(await page.locator('#description').inputValue(), '');
     assert.ok(await page.evaluate(() => window.revoked >= 6));
     assert.match(await page.locator('#app-status').innerText(), /preparado para enviar/);
 
-    // No API: visible honest fallback, downloadable photos, correct single-photo wording.
-    await page.evaluate(() => { Object.defineProperty(navigator, 'canShare', { value: undefined }); });
     await choose('falta');
     await page.locator('#photos-input').setInputFiles(image(1));
     report = await page.evaluate(() => prepareReport());
-    assert.match(report.body, /1 Foto beigefügt\./);
-    await page.locator('#send-report').click();
-    assert.match(await page.locator('#delivery-instructions').innerText(), /no añade fotos/);
-    assert.equal(await page.locator('#download-list a').count(), 1);
-    await page.locator('#delivery-back').click();
+    assert.match(report.body, /1 Foto zum manuellen Anhängen\./);
     await page.locator('#cancel-report').click();
     await page.locator('#discard-report').click();
 
@@ -178,10 +147,11 @@ test('Chromium: mailto recipient, encoding, reset and text-only flow', async t =
   await page.locator('#description').fill('Texto español & símbolos + ? #\nSegunda línea');
   await page.locator('#send-report').click();
   assert.equal(await page.locator('#download-list a').count(), 0);
-  await page.locator('#delivery-continue').click();
   const mailto = new URL(await Promise.race([navigation, new Promise((_, reject) => setTimeout(() => reject(Error('No mailto navigation')), 5000))]));
+  assert.equal(await page.locator('#delivery-dialog').isVisible(), false);
   assert.equal(mailto.pathname, 'info@taberna-flamenca.com');
-  assert.match(mailto.searchParams.get('subject'), /^TF-\d{8}-\d{6} – Sonstiges$/);
+  assert.ok(mailto.searchParams.get('body').includes('Meldungsnummer:\n' + mailto.searchParams.get('subject')));
+  assert.match(mailto.searchParams.get('subject'), /^TF-\d{8}-\d{6}$/);
   assert.match(mailto.searchParams.get('body'), /Texto español & símbolos \+ \? #\nSegunda línea/);
   assert.match(mailto.searchParams.get('body'), /Keine Fotos beigefügt\./);
   assert.equal(await page.locator('#home').isVisible(), true);

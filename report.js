@@ -14,7 +14,6 @@ const $ = id => document.getElementById(id);
 const photos = [];
 let activeCategory = null;
 let homeButton = null;
-let pendingDelivery = null;
 let busy = false;
 
 function selectCategory(id) {
@@ -69,7 +68,7 @@ function addPhotos(event) {
   const input = event.target;
   const messages = [];
   for (const file of input.files) {
-    // iOS can return HEIC/HEIF images; retain original files for sharing.
+    // iOS can return HEIC/HEIF images; retain original files for manual attachment.
     const isImage = file.type.startsWith('image/') || (!file.type && /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?)$/i.test(file.name));
     if (!isImage || !file.size) {
       messages.push('Selecciona un archivo de imagen válido.');
@@ -90,15 +89,12 @@ function addPhotos(event) {
 function resetReport(message = '') {
   photos.forEach(photo => URL.revokeObjectURL(photo.url));
   photos.length = 0;
-  pendingDelivery = null;
   activeCategory = null;
   busy = false;
   $('report-form').reset();
   $('form-error').textContent = '';
   $('photo-message').textContent = '';
-  $('delivery-error').textContent = '';
   $('download-list').replaceChildren();
-  $('delivery-instructions').replaceChildren();
   $('send-report').disabled = false;
   $('cancel-report').disabled = false;
   renderPhotos();
@@ -123,47 +119,27 @@ function prepareReport(now = new Date()) {
   const reportId = `TF-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
   const category = categories[activeCategory];
   const description = $('description').value.trim() || 'Keine Beschreibung angegeben.';
-  const photoText = photos.length === 0 ? 'Keine Fotos beigefügt.' : `${photos.length} ${photos.length === 1 ? 'Foto' : 'Fotos'} beigefügt.`;
+  const photoText = photos.length === 0 ? 'Keine Fotos beigefügt.' : `${photos.length} ${photos.length === 1 ? 'Foto' : 'Fotos'} zum manuellen Anhängen.`;
   const body = [
     'TABERNA FLAMENCA – MELDUNG', '', 'Meldungsnummer:', reportId, '',
     'Kategorie:', category.de, '', 'Datum:', `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()}`, '',
     'Uhrzeit:', `${pad(now.getHours())}:${pad(now.getMinutes())}`, '',
     'Beschreibung:', description, '', 'Fotos:', photoText
   ].join('\n');
-  return { reportId, subject: `${reportId} – ${category.de}`, body, files: photos.map(photo => photo.file) };
+  return { reportId, subject: reportId, body, files: photos.map(photo => photo.file) };
 }
 
-function canShareFiles(files) {
-  if (!files.length || !navigator.share || !navigator.canShare) return false;
-  try { return navigator.canShare({ files }); } catch { return false; }
+function openMail(report) {
+  // mailto opens the configured mail handler; it cannot attach files.
+  const link = document.createElement('a');
+  link.href = `mailto:${recipient}?subject=${encodeURIComponent(report.subject)}&body=${encodeURIComponent(report.body)}`;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  document.body.append(link);
+  try { link.click(); } finally { link.remove(); }
 }
 
-function showDelivery(report) {
-  const nativeShare = canShareFiles(report.files);
-  // Web Share has no recipient field and the chosen target controls title/text handling.
-  pendingDelivery = { report, nativeShare };
-  $('delivery-instructions').replaceChildren();
-  const explanation = document.createElement('p');
-  explanation.textContent = nativeShare
-    ? 'Elige tu aplicación de correo en el menú de compartir. Introduce el destinatario indicado y comprueba el asunto, el texto y las fotos antes de enviar. Algunas aplicaciones no conservan todos los campos.'
-    : report.files.length
-      ? 'Este navegador no permite compartir estas fotos como archivos. Guarda cada foto con los enlaces siguientes y adjúntalas manualmente en el correo. «Abrir correo» prepara solo el destinatario, el asunto y el texto; no añade fotos.'
-      : 'Se abrirá tu aplicación de correo con el destinatario, el asunto y el texto. Revisa el mensaje antes de enviarlo.';
-  $('delivery-instructions').append(explanation);
-  $('download-list').replaceChildren();
-  if (!nativeShare) photos.forEach((photo, index) => {
-    const li = document.createElement('li');
-    const link = document.createElement('a');
-    link.href = photo.url;
-    link.download = photo.file.name || `foto-${index + 1}.jpg`;
-    link.textContent = `Guardar foto ${index + 1}`;
-    li.append(link);
-    $('download-list').append(li);
-  });
-  $('delivery-continue').textContent = nativeShare ? 'Compartir' : 'Abrir correo';
-  $('delivery-error').textContent = '';
-  $('delivery-dialog').showModal();
-}
+const preparedMessage = 'La comunicación se ha preparado para enviar. Revisa el mensaje en tu aplicación de correo.';
 
 $('report-form').addEventListener('submit', event => {
   event.preventDefault();
@@ -174,71 +150,36 @@ $('report-form').addEventListener('submit', event => {
     return;
   }
   $('form-error').textContent = '';
-  showDelivery(prepareReport());
-});
-
-$('delivery-continue').addEventListener('click', async () => {
-  if (busy || !pendingDelivery) return;
-  const { report, nativeShare } = pendingDelivery;
   busy = true;
-  $('delivery-continue').disabled = true;
-  $('delivery-back').disabled = true;
-  $('send-report').disabled = true;
-  $('cancel-report').disabled = true;
   try {
-    if (nativeShare) {
-      // Called directly inside a user gesture, with the original File objects.
-      await navigator.share({
-        files: report.files,
-        title: report.subject,
-        text: `Empfänger: ${recipient}\nBetreff: ${report.subject}\n\n${report.body}`
-      });
-    } else {
-      // mailto cannot attach images. The preceding dialog explains manual attachment.
-      // Keep this document alive even when an external protocol has no handler.
-      const mailLink = document.createElement('a');
-      mailLink.href = `mailto:${recipient}?subject=${encodeURIComponent(report.subject)}&body=${encodeURIComponent(report.body)}`;
-      mailLink.target = '_blank';
-      mailLink.rel = 'noopener';
-      document.body.append(mailLink);
-      mailLink.click();
-      mailLink.remove();
-    }
-    $('delivery-dialog').close();
-    resetReport('La comunicación se ha preparado para enviar. Comprueba el correo y los archivos adjuntos en tu aplicación de correo.');
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      $('delivery-dialog').close();
-      $('form-error').textContent = 'Se ha cancelado la opción de compartir. Tu comunicación sigue aquí.';
-    } else {
-      // Keep all inputs, including files, when the OS refuses the handoff.
-      pendingDelivery.nativeShare = false;
-      $('delivery-instructions').textContent = 'No se ha podido abrir el menú de compartir. Puedes volver e intentarlo de nuevo, o abrir el correo y adjuntar las fotos manualmente. Guarda primero las fotos:';
+    const report = prepareReport();
+    openMail(report);
+    if (photos.length) {
+      // Keep camera files available until the user has saved/attached them.
+      // This notice follows the mail launch; it never asks for a delivery method.
       $('download-list').replaceChildren();
       photos.forEach((photo, index) => {
         const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = photo.url;
-        a.download = photo.file.name || `foto-${index + 1}.jpg`;
-        a.textContent = `Guardar foto ${index + 1}`;
-        li.append(a);
+        const link = document.createElement('a');
+        link.href = photo.url;
+        link.download = photo.file.name || `foto-${index + 1}.jpg`;
+        link.textContent = `Guardar foto ${index + 1}`;
+        li.append(link);
         $('download-list').append(li);
       });
-      $('delivery-continue').textContent = 'Abrir correo';
-      $('delivery-error').textContent = 'El correo no incluirá fotos automáticamente.';
+      $('delivery-dialog').showModal();
+    } else {
+      resetReport(preparedMessage);
     }
+  } catch {
+    $('form-error').textContent = 'No se ha podido abrir el correo. Comprueba que tienes una aplicación de correo configurada e inténtalo de nuevo.';
   } finally {
     busy = false;
-    $('delivery-continue').disabled = false;
-    $('delivery-back').disabled = false;
-    $('send-report').disabled = false;
-    $('cancel-report').disabled = false;
   }
 });
 
-$('delivery-back').addEventListener('click', () => $('delivery-dialog').close());
-$('delivery-dialog').addEventListener('cancel', event => { if (busy) event.preventDefault(); });
-$('delivery-dialog').addEventListener('close', () => { pendingDelivery = null; });
+$('finish-photos').addEventListener('click', () => $('delivery-dialog').close());
+$('delivery-dialog').addEventListener('close', () => resetReport(preparedMessage));
 $('cancel-report').addEventListener('click', cancelReport);
 $('keep-report').addEventListener('click', () => $('cancel-dialog').close());
 $('discard-report').addEventListener('click', () => { $('cancel-dialog').close(); resetReport(); });
