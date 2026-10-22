@@ -658,6 +658,8 @@ and
 }
 
 </style>
+<link rel="stylesheet" href="report.css">
+<script src="report.js" defer></script>
 </head>
 
 
@@ -676,7 +678,7 @@ and
      APP
      ====================================================== -->
 
-<main class="app">
+<main class="app" id="home">
 
 
   <!-- HEADER -->
@@ -997,34 +999,58 @@ and
 
 
 
-<!-- ======================================================
-     JAVASCRIPT
-     ====================================================== -->
+<section class="report-view" id="report-view" aria-labelledby="report-title" hidden>
+  <header class="report-header">
+    <img class="report-logo" src="logo.png" alt="Taberna Flamenca">
+    <div class="report-category"><div class="circle" id="report-icon" aria-hidden="true"></div>
+    <h1 id="report-title" tabindex="-1"></h1></div>
+  </header>
+  <form id="report-form" class="report-panel" novalidate>
+    <fieldset class="photos-field">
+      <legend id="photo-count">Fotos 0 / 5</legend>
+      <p id="photo-help">Opcional. Añade hasta 5 fotos.</p>
+      <div class="photo-actions">
+        <label class="touch-button photo-picker" for="camera-input">Tomar foto
+          <input id="camera-input" type="file" accept="image/*" capture="environment" aria-describedby="photo-help">
+        </label>
+        <label class="touch-button photo-picker" for="photos-input">Elegir fotos
+          <input id="photos-input" type="file" accept="image/*" multiple aria-describedby="photo-help">
+        </label>
+      </div>
+      <ul class="photo-list" id="photo-list" aria-label="Fotos seleccionadas"></ul>
+      <p id="photo-message" role="status"></p>
+    </fieldset>
+    <label class="description-label" for="description">Descripción <span>(opcional)</span></label>
+    <textarea id="description" rows="5" placeholder="Describe brevemente lo que quieres comunicar…" aria-describedby="form-error"></textarea>
+    <p id="form-error" role="alert"></p>
+    <p class="privacy-note">Los datos se conservan solo durante esta comunicación y se descartan al cancelar o preparar el envío.</p>
+    <div class="form-actions">
+      <button class="touch-button secondary" type="button" id="cancel-report">Cancel</button>
+      <button class="touch-button primary" type="submit" id="send-report">Send</button>
+    </div>
+  </form>
+</section>
+<p class="app-status" id="app-status" role="status" hidden></p>
 
-<script>
+<dialog id="cancel-dialog" aria-labelledby="cancel-title">
+  <h2 id="cancel-title">¿Quieres cancelar esta comunicación?</h2>
+  <p>Se perderán los datos introducidos.</p>
+  <div class="dialog-actions">
+    <button class="touch-button secondary" id="keep-report" autofocus>Volver</button>
+    <button class="touch-button danger" id="discard-report">Cancelar comunicación</button>
+  </div>
+</dialog>
 
-function selectCategory(category){
-
-  /*
-    Hier bauen wir als Nächstes
-    die einzelnen Unterseiten ein.
-
-    defecto = Defekt / funktioniert nicht
-    falta   = fehlt / nachbestellen
-    aviso   = Hinweis / Unstimmigkeit
-    mejora  = Verbesserungsvorschlag
-    otro    = Sonstiges
-  */
-
-  console.log(
-    "Categoría:",
-    category
-  );
-
-}
-
-</script>
-
-
+<dialog id="delivery-dialog" aria-labelledby="delivery-title">
+  <h2 id="delivery-title">Preparar el envío</h2>
+  <div id="delivery-instructions"></div>
+  <p>Destinatario: <strong>info@taberna-flamenca.com</strong></p>
+  <ul id="download-list"></ul>
+  <p id="delivery-error" role="alert"></p>
+  <div class="dialog-actions">
+    <button class="touch-button secondary" id="delivery-back" autofocus>Volver</button>
+    <button class="touch-button primary" id="delivery-continue">Continuar</button>
+  </div>
+</dialog>
 </body>
 </html>

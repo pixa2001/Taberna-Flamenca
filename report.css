@@ -1,0 +1,57 @@
+[hidden] { display: none !important; }
+.report-view {
+  position: relative; z-index: 2; width: min(840px, 100%); margin: auto;
+  padding: max(18px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  --category-color: var(--orange);
+}
+.report-header { text-align: center; }
+.report-logo { width: 100px; height: 100px; object-fit: contain; }
+.report-category { display: flex; gap: 20px; align-items: center; text-align: left; margin: 8px 0 24px; }
+.report-category .circle { width: 78px; height: 78px; flex: 0 0 78px; margin: 0; }
+.report-category h1 { font-size: clamp(23px, 3.5vw, 34px); line-height: 1.15; margin: 0; overflow-wrap: anywhere; }
+.report-panel { background: rgba(9, 8, 7, .88); border: 1px solid #ffffff35; border-top: 4px solid var(--category-color); border-radius: 22px; padding: 24px; }
+.photos-field { border: 0; padding: 0; margin: 0 0 20px; min-width: 0; }
+.photos-field legend, .description-label { font-size: 21px; font-weight: 700; }
+#photo-help, .privacy-note, .description-label span { color: #d3cbc5; font-size: 15px; line-height: 1.5; font-weight: 400; }
+.photo-actions, .form-actions, .dialog-actions { display: flex; gap: 12px; }
+.touch-button { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 14px; border: 1px solid #ffffff50; background: #332a24; color: white; padding: 13px 20px; font: inherit; font-weight: 700; text-align: center; cursor: pointer; text-decoration: none; }
+.touch-button:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+.touch-button:disabled { opacity: .5; cursor: default; }
+.photo-picker { position: relative; flex: 1; overflow: hidden; }
+.photo-picker input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.photo-picker:focus-within { outline: 3px solid var(--gold); outline-offset: 3px; }
+.photo-picker:has(input:disabled) { opacity: .5; }
+.photo-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; padding: 0; margin: 18px 0 0; }
+.photo-list li { position: relative; min-width: 0; }
+.photo-list img { width: 100%; height: 115px; object-fit: cover; border-radius: 14px; background: #302923; }
+.remove-photo { position: absolute; right: 4px; top: 4px; border-radius: 50%; min-width: 44px; min-height: 44px; border: 1px solid white; background: #160b08e8; color: white; font-size: 25px; cursor: pointer; }
+#photo-message, #form-error, #delivery-error { color: #ffd398; line-height: 1.4; }
+textarea { display: block; width: 100%; box-sizing: border-box; resize: vertical; min-height: 140px; border-radius: 14px; background: #171310; color: white; border: 1px solid #a69a8d; padding: 16px; font: inherit; font-size: 18px; line-height: 1.5; margin-top: 12px; }
+textarea::placeholder { color: #bfb5ad; }
+.form-actions { margin-top: 22px; }
+.form-actions > button { flex: 1; font-size: 20px; }
+.primary { background: #126039; border-color: #42b878; }
+.secondary { background: #342e29; }
+.danger { background: #8c291b; }
+dialog { box-sizing: border-box; width: min(540px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; background: #19130f; color: white; border: 1px solid #a18b6c; border-radius: 22px; padding: 26px; }
+dialog::backdrop { background: #000b; backdrop-filter: blur(5px); }
+dialog h2 { margin-top: 0; font-size: 24px; }
+dialog p { line-height: 1.5; overflow-wrap: anywhere; }
+.dialog-actions { flex-wrap: wrap; margin-top: 20px; }
+.dialog-actions button { flex: 1; }
+#download-list { padding-left: 20px; }
+#download-list a { display: inline-block; color: #ffd382; padding: 12px 4px; overflow-wrap: anywhere; }
+.app-status { position: relative; z-index: 3; background: #172b20; border: 1px solid #69b780; border-radius: 14px; width: min(620px, calc(100% - 40px)); margin: 18px auto; padding: 16px; line-height: 1.5; }
+@media(max-width: 500px) {
+  .report-panel { padding: 18px; }
+  .report-category { gap: 14px; }
+  .report-category .circle { width: 62px; height: 62px; flex-basis: 62px; }
+  .photo-actions { flex-wrap: wrap; }
+  .photo-picker { padding: 12px; }
+}
+@media(max-height: 550px) and (orientation: landscape) {
+  .report-logo { width: 64px; height: 64px; }
+  .report-category { margin-bottom: 16px; }
+}
+
+.preview-note { color: #d3cbc5; font-size: 14px; line-height: 1.4; margin: 6px 0; }
