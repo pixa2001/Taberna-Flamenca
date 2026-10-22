@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Taberna">
+<meta name="theme-color" content="#090807">
+
+<title>Taberna Flamenca – Comunicación</title>
+
+<style>
+:root{
+  --orange:#ff4a18;
+  --gold:#f5a900;
+  --turquoise:#00cbd1;
+  --green:#19d35b;
+  --purple:#8f32ef;
+  --white:#fff;
+  --muted:#d3d3d3;
+}
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  min-height:100%;
+  background:#090807;
+  color:white;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",
+              "Segoe UI",sans-serif;
+}
+
+body{
+  min-height:100dvh;
+  overflow-x:hidden;
+}
+
+/* Hintergrund */
+.background{
+  position:fixed;
+  inset:-25px;
+  z-index:0;
+
+  /* Später hier gerne ein echtes Taberna-Foto einsetzen */
+  background:
+    radial-gradient(circle at 15% 25%, rgba(255,126,0,.30), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(255,72,0,.22), transparent 28%),
+    radial-gradient(circle at 55% 80%, rgba(0,190,190,.12), transparent 25%),
+    linear-gradient(135deg,#261008,#090909 45%,#170b06);
+
+  filter:blur(15px);
+  transform:scale(1.08);
+}
+
+/* Abdunklung für bessere Lesbarkeit */
+.background::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.42);
+}
+
+.app{
+  position:relative;
+  z-index:2;
+  width:min(1450px,100%);
+  min-height:100dvh;
+  margin:auto;
+  padding:
+    max(24px,env(safe-area-inset-top))
+    30px
+    max(28px,env(safe-area-inset-bottom));
+}
+
+/* Kopfbereich */
+
+.header{
+  display:flex;
+  justify-content:center;
+  position:relative;
+}
+
+.logo{
+  width:190px;
+  height:190px;
+  object-fit:contain;
+  filter:drop-shadow(0 8px 25px rgba(0,0,0,.45));
+}
+
+.settings{
+  position:absolute;
+  right:0;
+  top:5px;
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(15,15,15,.65);
+  color:white;
+  font-size:25px;
+  cursor:pointer;
+  backdrop-filter:blur(10px);
+}
+
+.title{
+  text-align:center;
+  margin:15px 0 50px;
+}
+
+.title h1{
+  margin:0;
+  font-size:clamp(36px,4vw,58px);
+  line-height:1.05;
+  letter-spacing:-1.5px;
+}
+
+.line{
+  width:180px;
+  height:6px;
+  margin:22px auto 0;
+  border-radius:100px;
+  background:linear-gradient(90deg,#ff9a1f,#f7a900,transparent);
+  transform:rotate(-2deg);
+}
+
+/* Kategorien */
+
+.categories{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:32px;
+  align-items:start;
+}
+
+.category{
+  appearance:none;
+  border:0;
+  background:none;
+  color:white;
+  cursor:pointer;
+  padding:0;
+  font:inherit;
+  text-align:center;
+}
+
+.circle{
+  width:min(15vw,210px);
+  aspect-ratio:1;
+  margin:auto;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:
+    transform .15s ease,
+    filter .15s ease;
+  box-shadow:
+    inset 0 0 35px rgba(0,0,0,.25),
+    0 15px 35px rgba(0,0,0,.30);
+}
+
+.category:active .circle{
+  transform:scale(.94);
+}
+
+.icon{
+  width:48%;
+  height:48%;
+  fill:white;
+  stroke:white;
+}
+
+.red{
+  background:linear-gradient(145deg,#e73516,#7d170d);
+  border:4px solid var(--orange);
+  box-shadow:0 0 30px rgba(255,74,24,.23);
+}
+
+.yellow{
+  background:linear-gradient(145deg,#d99908,#6b4700);
+  border:4px solid var(--gold);
+  box-shadow:0 0 30px rgba(245,169,0,.20);
+}
+
+.blue{
+  background:linear-gradient(145deg,#079fa3,#004d50);
+  border:4px solid var(--turquoise);
+  box-shadow:0 0 30px rgba(0,203,209,.20);
+}
+
+.green{
+  background:linear-gradient(145deg,#159447,#064d25);
+  border:4px solid var(--green);
+  box-shadow:0 0 30px rgba(25,211,91,.20);
+}
+
+.purple{
+  background:linear-gradient(145deg,#7830c9,#371069);
+  border:4px solid var(--purple);
+  box-shadow:0 0 30px rgba(143,50,239,.22);
+}
+
+.label{
+  display:block;
+  margin-top:20px;
+  font-size:clamp(17px,1.55vw,24px);
+  font-weight:750;
+  line-height:1.18;
+}
+
+/* iPhone / kleine Displays */
+
+@media(max-width:700px){
+
+  .app{
+    padding-left:18px;
+    padding-right:18px;
+  }
+
+  .logo{
+    width:155px;
+    height:155px;
+  }
+
+  .settings{
+    width:46px;
+    height:46px;
+    font-size:21px;
+  }
+
+  .title{
+    margin-top:15px;
+    margin-bottom:38px;
+  }
+
+  .title h1{
+    font-size:37px;
+  }
+
+  .line{
+    width:130px;
+    margin-top:18px;
+  }
+
+  .categories{
+    grid-template-columns:repeat(2,1fr);
+    gap:34px 18px;
+  }
+
+  .circle{
+    width:min(38vw,180px);
+  }
+
+  .label{
+    font-size:18px;
+    margin-top:12px;
+  }
+
+  /* Letzter Button mittig */
+  .category:last-child{
+    grid-column:1 / 3;
+    width:50%;
+    justify-self:center;
+  }
+}
+
+/* Sehr kleine iPhones */
+
+@media(max-width:390px){
+  .logo{
+    width:130px;
+    height:130px;
+  }
+
+  .title h1{
+    font-size:32px;
+  }
+
+  .circle{
+    width:145px;
+  }
+
+  .label{
+    font-size:16px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="background"></div>
+
+<main class="app">
+
+  <header class="header">
+
+    <!--
+    Lade dein Taberna-Logo bei GitHub unter dem Namen
+    logo.png hoch.
+    -->
+    <img class="logo"
+         src="logo.png"
+         alt="Taberna Flamenca">
+
+    <button class="settings"
+            aria-label="Configuración">
+      ⚙
+    </button>
+
+  </header>
+
+  <section class="title">
+    <h1>¿Qué quieres comunicar?</h1>
+    <div class="line"></div>
+  </section>
+
+  <section class="categories">
+
+    <!-- DEFECTO -->
+    <button class="category"
+            onclick="selectCategory('defecto')">
+
+      <div class="circle red">
+
+        <svg class="icon"
+             viewBox="0 0 24 24">
+          <path d="M22 6.9a6 6 0 0 1-7.8 5.7L7 19.8a2.8 2.8 0 1 1-4-4l7.2-7.2A6 6 0 0 1 17.1 1l-3.6 3.6 1.9 1.9L19 2.9A6 6 0 0 1 22 6.9z"/>
+        </svg>
+
+      </div>
+
+      <span class="label">
+        Algo está roto<br>
+        o no funciona
+      </span>
+
+    </button>
+
+
+    <!-- FEHLT -->
+    <button class="category"
+            onclick="selectCategory('falta')">
+
+      <div class="circle yellow">
+
+        <svg class="icon"
+             viewBox="0 0 24 24">
+          <path d="M21 8l-9-5-9 5v9l9 5 9-5V8zm-9-2.7L17.8 8 12 10.8 6.2 8 12 5.3zM5 10l6 3v6.3l-6-3V10zm8 9.3V13l6-3v6.3l-6 3z"/>
+        </svg>
+
+      </div>
+
+      <span class="label">
+        Falta algo<br>
+        o hay que pedirlo
+      </span>
+
+    </button>
+
+
+    <!-- HINWEIS -->
+    <button class="category"
+            onclick="selectCategory('aviso')">
+
+      <div class="circle blue">
+
+        <svg class="icon"
+             viewBox="0 0 24 24">
+          <path d="M12 2 1 21h22L12 2zm0 5.5c.7 0 1.2.5 1.1 1.2l-.5 6.1h-1.2l-.5-6.1c-.1-.7.4-1.2 1.1-1.2zm0 10.8a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4z"/>
+        </svg>
+
+      </div>
+
+      <span class="label">
+        Aviso<br>
+        algo no está correcto
+      </span>
+
+    </button>
+
+
+    <!-- VERBESSERUNG -->
+    <button class="category"
+            onclick="selectCategory('mejora')">
+
+      <div class="circle green">
+
+        <svg class="icon"
+             viewBox="0 0 24 24">
+          <path d="M9 21h6v-1H9v1zm3-20a7 7 0 0 0-4 12.7V17h8v-3.3A7 7 0 0 0 12 1zm2 11.5-.8.6V15h-2.4v-1.9l-.8-.6A4.7 4.7 0 1 1 14 12.5z"/>
+        </svg>
+
+      </div>
+
+      <span class="label">
+        Propuesta<br>
+        de mejora
+      </span>
+
+    </button>
+
+
+    <!-- SONSTIGES -->
+    <button class="category"
+            onclick="selectCategory('otro')">
+
+      <div class="circle purple">
+
+        <svg class="icon"
+             viewBox="0 0 24 24">
+          <circle cx="5" cy="12" r="2.2"/>
+          <circle cx="12" cy="12" r="2.2"/>
+          <circle cx="19" cy="12" r="2.2"/>
+        </svg>
+
+      </div>
+
+      <span class="label">
+        Otro
+      </span>
+
+    </button>
+
+  </section>
+
+</main>
+
+<script>
+function selectCategory(category){
+
+  /*
+    Im nächsten Schritt verbinden wir hier
+    die einzelnen Unterseiten.
+
+    Beispiel:
+    defecto -> Defekt / funktioniert nicht
+    falta   -> fehlt / nachbestellen
+    aviso   -> Hinweis / Unstimmigkeit
+    mejora  -> Verbesserungsvorschlag
+    otro    -> Sonstiges
+  */
+
+  console.log("Categoría:", category);
+
+  // Testreaktion
+  document.body.dataset.category = category;
+}
+</script>
+
+</body>
+</html>
