@@ -68,7 +68,7 @@ function addPhotos(event) {
   const input = event.target;
   const messages = [];
   for (const file of input.files) {
-    // iOS can return HEIC/HEIF images; retain original files for manual attachment.
+    // iOS can return HEIC/HEIF images; retain original files for sharing.
     const isImage = file.type.startsWith('image/') || (!file.type && /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?)$/i.test(file.name));
     if (!isImage || !file.size) {
       messages.push('Selecciona un archivo de imagen válido.');
@@ -90,6 +90,7 @@ function resetReport(message = '') {
   photos.forEach(photo => URL.revokeObjectURL(photo.url));
   photos.length = 0;
   activeCategory = null;
+  fallbackReport = null;
   busy = false;
   $('report-form').reset();
   $('form-error').textContent = '';
@@ -119,7 +120,7 @@ function prepareReport(now = new Date()) {
   const reportId = `TF-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
   const category = categories[activeCategory];
   const description = $('description').value.trim() || 'Keine Beschreibung angegeben.';
-  const photoText = photos.length === 0 ? 'Keine Fotos beigefügt.' : `${photos.length} ${photos.length === 1 ? 'Foto' : 'Fotos'} zum manuellen Anhängen.`;
+  const photoText = photos.length === 0 ? 'Keine Fotos beigefügt.' : `${photos.length} ${photos.length === 1 ? 'Foto' : 'Fotos'} beigefügt.`;
   const body = [
     'TABERNA FLAMENCA – MELDUNG', '', 'Meldungsnummer:', reportId, '',
     'Kategorie:', category.de, '', 'Datum:', `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()}`, '',
@@ -141,7 +142,22 @@ function openMail(report) {
 
 const preparedMessage = 'La comunicación se ha preparado para enviar. Revisa el mensaje en tu aplicación de correo.';
 
-$('report-form').addEventListener('submit', event => {
+function showMailFallback() {
+  $('download-list').replaceChildren();
+  photos.forEach((photo, index) => {
+    const li = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = photo.url;
+    link.download = photo.file.name || `foto-${index + 1}.jpg`;
+    link.textContent = `Guardar foto ${index + 1}`;
+    li.append(link);
+    $('download-list').append(li);
+  });
+  $('delivery-dialog').showModal();
+}
+
+let fallbackReport = null;
+$('report-form').addEventListener('submit', async event => {
   event.preventDefault();
   if (busy || !activeCategory) return;
   if (!$('description').value.trim() && !photos.length) {
@@ -151,35 +167,56 @@ $('report-form').addEventListener('submit', event => {
   }
   $('form-error').textContent = '';
   busy = true;
+  $('send-report').disabled = true;
+  $('cancel-report').disabled = true;
+  const report = prepareReport();
   try {
-    const report = prepareReport();
-    openMail(report);
-    if (photos.length) {
-      // Keep camera files available until the user has saved/attached them.
-      // This notice follows the mail launch; it never asks for a delivery method.
-      $('download-list').replaceChildren();
-      photos.forEach((photo, index) => {
-        const li = document.createElement('li');
-        const link = document.createElement('a');
-        link.href = photo.url;
-        link.download = photo.file.name || `foto-${index + 1}.jpg`;
-        link.textContent = `Guardar foto ${index + 1}`;
-        li.append(link);
-        $('download-list').append(li);
-      });
-      $('delivery-dialog').showModal();
-    } else {
-      resetReport(preparedMessage);
+    let supported = typeof navigator.share === 'function';
+    if (report.files.length) {
+      try { supported = supported && typeof navigator.canShare === 'function' && navigator.canShare({ files: report.files }); }
+      catch { supported = false; }
     }
-  } catch {
-    $('form-error').textContent = 'No se ha podido abrir el correo. Comprueba que tienes una aplicación de correo configurada e inténtalo de nuevo.';
+    if (supported) {
+      const data = {
+        title: report.subject,
+        text: `Empfänger (E-Mail): ${recipient}\nBetreff: ${report.subject}\n\n${report.body}`
+      };
+      if (report.files.length) data.files = report.files;
+      // Keep the user gesture: no asynchronous work before invoking native share.
+      await navigator.share(data);
+      resetReport('La comunicación se ha preparado para compartir. Revisa el contenido en la aplicación elegida.');
+    } else {
+      fallbackReport = report;
+      showMailFallback();
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      $('form-error').textContent = 'Se ha cancelado la opción de compartir. Tu comunicación sigue aquí.';
+    } else {
+      fallbackReport = report;
+      showMailFallback();
+    }
   } finally {
     busy = false;
+    $('send-report').disabled = false;
+    $('cancel-report').disabled = false;
   }
 });
 
-$('finish-photos').addEventListener('click', () => $('delivery-dialog').close());
-$('delivery-dialog').addEventListener('close', () => resetReport(preparedMessage));
+$('fallback-mail').addEventListener('click', () => {
+  if (!fallbackReport) return;
+  try {
+    const report = { ...fallbackReport, body: fallbackReport.body.replace(/(\d+ Fotos?) beigefügt\./, '$1 zum manuellen Anhängen.') };
+    openMail(report);
+    $('delivery-dialog').close();
+    resetReport(preparedMessage);
+  } catch {
+    $('form-error').textContent = 'No se ha podido abrir el correo. Tu comunicación sigue aquí.';
+    $('delivery-dialog').close();
+  }
+});
+$('fallback-back').addEventListener('click', () => $('delivery-dialog').close());
+$('delivery-dialog').addEventListener('close', () => { fallbackReport = null; });
 $('cancel-report').addEventListener('click', cancelReport);
 $('keep-report').addEventListener('click', () => $('cancel-dialog').close());
 $('discard-report').addEventListener('click', () => { $('cancel-dialog').close(); resetReport(); });
