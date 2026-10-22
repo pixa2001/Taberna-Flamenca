@@ -222,27 +222,3 @@ $('keep-report').addEventListener('click', () => $('cancel-dialog').close());
 $('discard-report').addEventListener('click', () => { $('cancel-dialog').close(); resetReport(); });
 $('camera-input').addEventListener('change', addPhotos);
 $('photos-input').addEventListener('change', addPhotos);
-
-// Fade only the edge behind which scrollable content remains.
-let edgeFrame = 0;
-function updateScrollEdges() {
-  edgeFrame = 0;
-  const root = document.documentElement;
-  const viewport = window.visualViewport;
-  const height = viewport ? viewport.height : window.innerHeight;
-  root.style.setProperty('--visible-top', `${viewport ? viewport.offsetTop : 0}px`);
-  root.style.setProperty('--visible-height', `${height}px`);
-  const remaining = Math.max(0, root.scrollHeight - height);
-  const offset = Math.max(0, Math.min(viewport ? viewport.pageTop : window.scrollY, remaining));
-  root.style.setProperty('--top-edge-opacity', Math.min(1, offset / 48));
-  root.style.setProperty('--bottom-edge-opacity', Math.min(1, (remaining - offset) / 48));
-}
-function scheduleScrollEdges() {
-  if (!edgeFrame) edgeFrame = requestAnimationFrame(updateScrollEdges);
-}
-window.addEventListener('scroll', scheduleScrollEdges, { passive: true });
-window.addEventListener('resize', scheduleScrollEdges);
-window.visualViewport?.addEventListener('resize', scheduleScrollEdges);
-window.visualViewport?.addEventListener('scroll', scheduleScrollEdges, { passive: true });
-new ResizeObserver(scheduleScrollEdges).observe(document.body);
-scheduleScrollEdges();
