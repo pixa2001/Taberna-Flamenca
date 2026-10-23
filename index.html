@@ -660,6 +660,8 @@ and
 </style>
 <link rel="stylesheet" href="report.css?v=no-scroll-blur">
 <script src="report.js?v=no-scroll-blur" defer></script>
+<link rel="stylesheet" href="reviews.css?v=1">
+<script type="module" src="reviews.js?v=1"></script>
 </head>
 
 
@@ -994,6 +996,7 @@ and
 
   </section>
 
+  <div class="reviews-entry"><button class="touch-button" id="open-reviews" type="button"><span aria-hidden="true">★</span> Reseñas de Google</button></div>
 
 </main>
 
@@ -1030,6 +1033,33 @@ and
     </div>
   </form>
 </section>
+<section id="reviews-view" class="reviews-view" aria-labelledby="reviews-title" hidden>
+  <header class="reviews-header">
+    <img src="logo.png" alt="Taberna Flamenca" class="report-logo">
+    <h1 id="reviews-title" tabindex="-1">Reseñas de Google</h1>
+  </header>
+  <div class="reviews-toolbar">
+    <button type="button" class="touch-button secondary" id="reviews-back">Volver</button>
+    <button type="button" class="touch-button primary" id="reviews-refresh">Actualizar</button>
+    <button type="button" class="touch-button secondary" id="reviews-new-night">Nueva noche</button>
+  </div>
+  <p id="reviews-demo-banner" class="reviews-notice" hidden><strong>DEMOSTRACIÓN — DATOS DE EJEMPLO.</strong> No son reseñas reales de Google. Las marcas de prueba están separadas de las reales.</p>
+  <p id="reviews-status" role="status" aria-live="polite"></p>
+  <p id="reviews-storage-error" class="reviews-notice" role="alert" hidden></p>
+  <div class="reviews-mode-actions">
+    <button type="button" class="touch-button" id="reviews-demo">Probar con datos de ejemplo</button>
+    <button type="button" class="touch-button" id="reviews-live" hidden>Volver a reseñas reales</button>
+  </div>
+  <ul id="reviews-list" aria-label="Reseñas"></ul>
+</section>
+<dialog id="reviews-reset-dialog" aria-labelledby="reviews-reset-title">
+  <h2 id="reviews-reset-title">¿Quieres iniciar una nueva noche?</h2>
+  <p>Se eliminarán todas las marcas «Ya invitado» de este dispositivo en la vista actual.</p>
+  <div class="dialog-actions">
+    <button type="button" class="touch-button secondary" id="reviews-reset-cancel" autofocus>Cancelar</button>
+    <button type="button" class="touch-button danger" id="reviews-reset-confirm">Nueva noche</button>
+  </div>
+</dialog>
 <p class="app-status" id="app-status" role="status" hidden></p>
 
 <dialog id="cancel-dialog" aria-labelledby="cancel-title">

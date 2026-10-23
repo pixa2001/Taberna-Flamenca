@@ -42,3 +42,9 @@ RUN_WEBKIT=1 node --test tests/report.test.cjs
 ```
 
 Geprüft werden Kategorien, Validierung, Fotoverwaltung, Cancel, lokale Nummer, deutscher Nachrichtentext, direkter Share-Aufruf mit und ohne Fotos, Dateianhänge, Abbruch und Freigabefehler, Mail-Fallback, Empfängerhinweis und Betreff, Sonderzeichen, Zurücksetzen sowie iPad-/iPhone-Abmessungen in Hoch- und Querformat. Echte Kameraaufnahme und die externe Mail-App müssen auf einem iPhone/iPad geprüft werden. WebKit konnte in der Cloud wegen gesperrter Download-Domains nicht installiert werden.
+
+## Google-Bewertungen (Testansicht)
+
+Neu: „Reseñas de Google“ als separater Zugang unter den Meldekategorien. Echte Google-Daten sind noch nicht verbunden. „Probar con datos de ejemplo“ zeigt ausdrücklich gekennzeichnete Testdaten. Markierungen bleiben nur lokal auf diesem Gerät gespeichert; Test- und Echtbetrieb haben getrennte Schlüssel. Mit „Nueva noche“ können sie nach Bestätigung zurückgesetzt werden.
+
+Einrichtung des späteren Google-Backenddienstes, Speichergrenzen und alle Voraussetzungen: [docs/google-reviews.md](docs/google-reviews.md). Für sämtliche Tests `node --test tests/*.test.cjs` verwenden.
